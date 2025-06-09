@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant - Digital ryyn</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Share Tech Mono', monospace;
+            background-color: #0d1117; /* Dark background inspired by terminal */
+            color: #00ff41; /* Neo green text */
+            overflow: hidden; /* Hide overflow for particles */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 1; /* Behind chat box */
+            background-color: #0d1117;
+            background-image: url('');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: 50% 50%;
+        }
+
+        .chat-container {
+            position: relative;
+            z-index: 2; /* Above particles */
+            width: 90%;
+            max-width: 600px;
+            background-color: rgba(17, 25, 40, 0.8); /* Semi-transparent dark blue */
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.5), 0 0 40px rgba(0, 255, 65, 0.3); /* Green glow */
+            border: 1px solid #00ff41;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            max-height: 85vh; /* Adjusted for buttons */
+        }
+
+        .chat-header {
+            background-color: #00ff41;
+            color: #0d1117;
+            padding: 15px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5em;
+            text-align: center;
+            border-bottom: 1px solid #00ff41;
+            text-shadow: 0 0 5px #00ff41;
+        }
+
+        .chat-box {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: calc(85vh - 170px); /* Adjusted for header, input, and buttons */
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 10px;
+            max-width: 80%;
+            word-wrap: break-word;
+            line-height: 1.4;
+        }
+
+        .message.user {
+            background-color: #1a3a2a; /* Darker green for user */
+            color: #00ff41;
+            align-self: flex-end;
+            margin-left: auto;
+            border: 1px solid #00ff41;
+        }
+
+        .message.ai {
+            background-color: #2a1a3a; /* Darker purple for AI */
+            color: #aaff00; /* Yellowish green for AI */
+            align-self: flex-start;
+            margin-right: auto;
+            border: 1px solid #aaff00;
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 15px;
+            background-color: rgba(17, 25, 40, 0.9);
+            border-top: 1px solid #00ff41;
+        }
+
+        .chat-input input[type="text"] {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #00ff41;
+            border-radius: 8px;
+            background-color: #0d1117;
+            color: #00ff41;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1em;
+            outline: none;
+        }
+
+        .chat-input input[type="text"]::placeholder {
+            color: rgba(0, 255, 65, 0.6);
+        }
+
+        .chat-input button {
+            background-color: #00ff41;
+            color: #0d1117;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1em;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.4);
+        }
+
+        .chat-input button:hover {
+            background-color: #00e637;
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.6);
+        }
+
+        .chat-actions {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 15px;
+            background-color: rgba(17, 25, 40, 0.9);
+            border-top: 1px solid #00ff41;
+        }
+
+        .chat-actions button {
+            background-color: #2b3a4a; /* Darker blue for actions */
+            color: #aaff00;
+            border: 1px solid #aaff00;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.9em;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 0 10px rgba(170, 255, 0, 0.3);
+        }
+
+        .chat-actions button:hover {
+            background-color: #3b4c5d;
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(170, 255, 0, 0.5);
+        }
+
+        .loading-dots span {
+            animation: blink 1s infinite;
+            display: inline-block; /* Ensure dots stay on the same line */
+        }
+
+        .loading-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .chat-container {
+                width: 95%;
+                max-height: 90vh;
+            }
+            .chat-header {
+                font-size: 1.2em;
+                padding: 12px;
+            }
+            .chat-box {
+                padding: 15px;
+                max-height: calc(90vh - 150px); /* Adjusted for smaller screens */
+            }
+            .chat-input {
+                padding: 12px;
+            }
+            .chat-input input[type="text"] {
+                font-size: 0.9em;
+            }
+            .chat-input button {
+                padding: 8px 15px;
+                font-size: 0.9em;
+            }
+            .chat-actions {
+                flex-direction: column;
+                gap: 10px;
+                padding: 10px;
+            }
+            .chat-actions button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="particles-js"></div>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            ryyn Assistant AI
+        </div>
+        <div class="chat-box" id="chat-box">
+            <div class="message ai">Halo! Saya Digital ryyn AI. Ada yang bisa saya bantu?</div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="user-input" placeholder="Ketik pertanyaan Anda...">
+            <button id="send-button">Kirim</button>
+        </div>
+        <div class="chat-actions">
+            <button id="clear-chat-button">Bersihkan Chat</button>
+            <button id="developer-info-button">Info Developer</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script>
+        // Initialize particles.js
+        particlesJS('particles-js', {
+            "particles": {
+                "number": {
+                    "value": 80,
+                    "density": {
+                        "enable": true,
+                        "value_area": 800
+                    }
+                },
+                "color": {
+                    "value": "#00ff41" // Green particles
+                },
+                "shape": {
+                    "type": "circle",
+                    "stroke": {
+                        "width": 0,
+                        "color": "#000000"
+                    },
+                    "polygon": {
+                        "nb_sides": 5
+                    },
+                    "image": {
+                        "src": "",
+                        "width": 100,
+                        "height": 100
+                    }
+                },
+                "opacity": {
+                    "value": 0.5,
+                    "random": false,
+                    "anim": {
+                        "enable": false,
+                        "speed": 1,
+                        "opacity_min": 0.1,
+                        "sync": false
+                    }
+                },
+                "size": {
+                    "value": 3,
+                    "random": true,
+                    "anim": {
+                        "enable": false,
+                        "speed": 40,
+                        "size_min": 0.1,
+                        "sync": false
+                    }
+                },
+                "line_linked": {
+                    "enable": true,
+                    "distance": 150,
+                    "color": "#00ff41",
+                    "opacity": 0.4,
+                    "width": 1
+                },
+                "move": {
+                    "enable": true,
+                    "speed": 3,
+                    "direction": "none",
+                    "random": false,
+                    "straight": false,
+                    "out_mode": "out",
+                    "bounce": false,
+                    "attract": {
+                        "enable": false,
+                        "rotateX": 600,
+                        "rotateY": 1200
+                    }
+                }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": {
+                    "onhover": {
+                        "enable": true,
+                        "mode": "grab"
+                    },
+                    "onclick": {
+                        "enable": true,
+                        "mode": "push"
+                    },
+                    "resize": true
+                },
+                "modes": {
+                    "grab": {
+                        "distance": 140,
+                        "line_linked": {
+                            "opacity": 1
+                        }
+                    },
+                    "bubble": {
+                        "distance": 400,
+                        "size": 40,
+                        "duration": 2,
+                        "opacity": 8,
+                        "speed": 3
+                    },
+                    "repulse": {
+                        "distance": 200,
+                        "duration": 0.4
+                    },
+                    "push": {
+                        "particles_nb": 4
+                    },
+                    "remove": {
+                        "particles_nb": 2
+                    }
+                }
+            },
+            "retina_detect": true
+        });
+    </script>
+
+    <script>
+        // --- Bagian JavaScript untuk Logika Chat AI ---
+        const API_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyA9AtbP1D_m0WwpBw8OJfrCBOZWah7ApmI";
+
+        const chatBox = document.getElementById('chat-box');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const clearChatButton = document.getElementById('clear-chat-button');
+        const developerInfoButton = document.getElementById('developer-info-button');
+
+        // Fungsi untuk menambahkan pesan ke chat box
+        function addMessage(sender, text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', sender);
+            messageDiv.textContent = text;
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight; // Scroll to bottom
+        }
+
+        // Fungsi untuk menampilkan indikator "mengetik" AI
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.classList.add('message', 'ai', 'typing-indicator');
+            typingDiv.innerHTML = '<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>';
+            typingDiv.id = 'typing-indicator';
+            chatBox.appendChild(typingDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Fungsi untuk menyembunyikan indikator "mengetik" AI
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById('typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        // Fungsi untuk memanggil API Gemini
+        async function callGeminiAPI(prompt) {
+            try {
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: prompt }]
+                        }]
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error("Gemini API Error:", errorData);
+                    // Check for specific error messages to provide better user feedback
+                    if (errorData.error && errorData.error.message.includes("API key not valid")) {
+                        return "Maaf, API Key tidak valid atau salah. Silakan periksa kembali.";
+                    } else if (errorData.error && errorData.error.message.includes("blocked due to safety")) {
+                        return "Maaf, respons AI diblokir karena masalah keamanan konten.";
+                    }
+                    throw new Error(`HTTP error! status: ${response.status} - ${errorData.error ? errorData.error.message : response.statusText}`);
+                }
+
+                const data = await response.json();
+                // Extracting text from the Gemini API response structure
+                if (data.candidates && data.candidates.length > 0 && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts.length > 0) {
+                    return data.candidates[0].content.parts[0].text;
+                } else {
+                    console.warn("Unexpected API response structure:", data);
+                    return "Maaf, saya tidak dapat memahami respons dari AI.";
+                }
+
+            } catch (error) {
+                console.error("Error communicating with AI:", error);
+                return "Mohon maaf, saya sedang mengalami masalah teknis saat menghubungi AI. Silakan coba lagi nanti.";
+            }
+        }
+
+        // Fungsi untuk mengirim pesan ke AI
+        async function sendMessageToAI(message) {
+            showTypingIndicator(); // Tampilkan indikator "mengetik"
+            userInput.disabled = true; // Nonaktifkan input saat AI berpikir
+            sendButton.disabled = true; // Nonaktifkan tombol kirim
+
+            let aiResponse = "Maaf, saya tidak mengerti pertanyaan Anda."; // Default fallback
+
+            // Memanggil Gemini API
+            aiResponse = await callGeminiAPI(message);
+
+            hideTypingIndicator(); // Sembunyikan indikator "mengetik"
+            addMessage('ai', aiResponse);
+            userInput.disabled = false; // Aktifkan kembali input
+            sendButton.disabled = false; // Aktifkan kembali tombol kirim
+            userInput.focus(); // Fokuskan kembali ke input
+        }
+
+        // Event listener untuk tombol Kirim
+        sendButton.addEventListener('click', () => {
+            const message = userInput.value.trim();
+            if (message) {
+                addMessage('user', message);
+                sendMessageToAI(message);
+                userInput.value = ''; // Clear input field
+            }
+        });
+
+        // Event listener untuk tombol Enter di input
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendButton.click();
+            }
+        });
+
+        // Event listener untuk tombol "Bersihkan Chat"
+        clearChatButton.addEventListener('click', () => {
+            chatBox.innerHTML = '<div class="message ai">Halo! Saya Digital Horizon AI. Ada yang bisa saya bantu?</div>'; // Reset chat
+        });
+
+        // Event listener untuk tombol "Info Developer"
+        developerInfoButton.addEventListener('click', () => {
+            alert('Aplikasi Chat AI ini dikembangkan oleh [ryyn digital]. Menggunakan teknologi Google.');
+        });
+
+        // Inisialisasi pesan sambutan saat pertama kali dibuka
+        document.addEventListener('DOMContentLoaded', () => {
+            userInput.focus();
+        });
+
+    </script>
+</body>
+</html>
