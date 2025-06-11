@@ -3,167 +3,243 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Assistant - Digital ryyn</title>
+    <title>AI Chat Assiten ryyn</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap');
-
         body {
             margin: 0;
             padding: 0;
-            font-family: 'Share Tech Mono', monospace;
-            background-color: #0d1117; /* Dark background inspired by terminal */
-            color: #00ff41; /* Neo green text */
-            overflow: hidden; /* Hide overflow for particles */
+            font-family: 'Roboto', sans-serif;
+            background-color: #222e35; /* Dark Telegram-like background */
+            color: #e0e0e0;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-        }
-
-        #particles-js {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            z-index: 1; /* Behind chat box */
-            background-color: #0d1117;
-            background-image: url('');
-            background-repeat: no-repeat;
-            background-size: cover;
-            background-position: 50% 50%;
+            overflow: hidden; /* Prevent body scroll if chat box is full */
         }
 
         .chat-container {
-            position: relative;
-            z-index: 2; /* Above particles */
-            width: 90%;
-            max-width: 600px;
-            background-color: rgba(17, 25, 40, 0.8); /* Semi-transparent dark blue */
-            border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0, 255, 65, 0.5), 0 0 40px rgba(0, 255, 65, 0.3); /* Green glow */
-            border: 1px solid #00ff41;
-            overflow: hidden;
+            width: 95%;
+            max-width: 700px;
+            height: 90vh; /* Fixed height for Telegram-like feel */
+            background-color: #1a252e; /* Slightly darker than body for main container */
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
             display: flex;
             flex-direction: column;
-            max-height: 85vh; /* Adjusted for buttons */
+            overflow: hidden;
         }
 
         .chat-header {
-            background-color: #00ff41;
-            color: #0d1117;
-            padding: 15px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.5em;
+            background-color: #0e1621; /* Dark blue Telegram header */
+            color: #fff;
+            padding: 15px 20px;
+            font-size: 1.3em;
+            font-weight: 500;
             text-align: center;
-            border-bottom: 1px solid #00ff41;
-            text-shadow: 0 0 5px #00ff41;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap; /* Allow header content to wrap */
+        }
+
+        .chat-header i {
+            margin-right: 10px;
+            font-size: 1.1em;
+            margin-bottom: 5px; /* Space for wrapping */
         }
 
         .chat-box {
             flex-grow: 1;
             padding: 20px;
             overflow-y: auto;
-            max-height: calc(85vh - 170px); /* Adjusted for header, input, and buttons */
+            /* Telegram chat wallpaper effect */
+            background-color: #000; /* Solid black wallpaper for chat */
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 100 100"><defs><pattern id="diagonal-stripes" patternUnits="userSpaceOnUse" width="10" height="10"><path d="M-1,1 l2,-2 M0,10 l10,-10 M9,11 l2,-2" stroke="%23333" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23diagonal-stripes)"/></svg>'); /* Very subtle dark diagonal stripes */
+            background-size: 20px 20px;
+            background-blend-mode: overlay; /* Blend to make stripes subtle */
             scroll-behavior: smooth;
         }
 
+        .message-wrapper {
+            display: flex;
+            margin-bottom: 10px;
+            align-items: flex-end; /* Align bottom of messages */
+        }
+
+        .message-wrapper.user {
+            justify-content: flex-end;
+        }
+
+        .message-wrapper.ai {
+            justify-content: flex-start;
+        }
+
+        .message-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9em;
+            flex-shrink: 0;
+            color: #fff;
+        }
+
+        .message-icon.user-icon {
+            background-color: #4a91f2; /* Telegram blue */
+            margin-left: 8px;
+        }
+
+        .message-icon.ai-icon {
+            background-color: #8c71ff; /* Telegram purple */
+            margin-right: 8px;
+        }
+
         .message {
-            margin-bottom: 15px;
-            padding: 10px 15px;
-            border-radius: 10px;
-            max-width: 80%;
+            padding: 8px 12px;
+            border-radius: 15px; /* More rounded corners */
+            max-width: calc(80% - 38px); /* Adjusted for icon */
             word-wrap: break-word;
             line-height: 1.4;
+            font-size: 0.95em;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            position: relative; /* For the speech bubble tail */
         }
 
-        .message.user {
-            background-color: #1a3a2a; /* Darker green for user */
-            color: #00ff41;
-            align-self: flex-end;
-            margin-left: auto;
-            border: 1px solid #00ff41;
+        .message.user-message {
+            background-color: #4a91f2; /* User bubble color */
+            color: #fff;
+            margin-right: 5px;
+            border-bottom-right-radius: 4px; /* Tail effect */
         }
 
-        .message.ai {
-            background-color: #2a1a3a; /* Darker purple for AI */
-            color: #aaff00; /* Yellowish green for AI */
-            align-self: flex-start;
-            margin-right: auto;
-            border: 1px solid #aaff00;
+        .message.ai-message {
+            background-color: #333d45; /* AI bubble color (dark grey) */
+            color: #e0e0e0;
+            margin-left: 5px;
+            border-bottom-left-radius: 4px; /* Tail effect */
         }
+
+        /* Speech bubble tails (optional, more complex CSS) */
+        /* You can uncomment and refine these for more exact Telegram look */
+        /*
+        .message.user-message:after {
+            content: '';
+            position: absolute;
+            bottom: 0px;
+            right: -8px;
+            width: 0;
+            height: 0;
+            border: 8px solid transparent;
+            border-left-color: #4a91f2;
+            border-bottom-color: #4a91f2;
+            border-right-width: 0;
+            border-top-width: 0;
+        }
+        .message.ai-message:after {
+            content: '';
+            position: absolute;
+            bottom: 0px;
+            left: -8px;
+            width: 0;
+            height: 0;
+            border: 8px solid transparent;
+            border-right-color: #333d45;
+            border-bottom-color: #333d45;
+            border-left-width: 0;
+            border-top-width: 0;
+        }
+        */
 
         .chat-input {
             display: flex;
-            padding: 15px;
-            background-color: rgba(17, 25, 40, 0.9);
-            border-top: 1px solid #00ff41;
+            padding: 10px 15px;
+            background-color: #1a252e; /* Input bar background */
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            align-items: center;
         }
 
         .chat-input input[type="text"] {
             flex-grow: 1;
-            padding: 10px;
-            border: 1px solid #00ff41;
-            border-radius: 8px;
-            background-color: #0d1117;
-            color: #00ff41;
-            font-family: 'Share Tech Mono', monospace;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 20px; /* Pill shape */
+            background-color: #333d45; /* Input field background */
+            color: #fff;
+            font-family: 'Roboto', sans-serif;
             font-size: 1em;
             outline: none;
+            margin-right: 10px;
         }
 
         .chat-input input[type="text"]::placeholder {
-            color: rgba(0, 255, 65, 0.6);
+            color: rgba(255, 255, 255, 0.4);
         }
 
         .chat-input button {
-            background-color: #00ff41;
-            color: #0d1117;
+            background-color: #4a91f2; /* Telegram blue button */
+            color: #fff;
             border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            margin-left: 10px;
+            padding: 10px 15px;
+            border-radius: 50%; /* Circular button */
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1em;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            box-shadow: 0 0 10px rgba(0, 255, 65, 0.4);
+            font-size: 1.2em;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            flex-shrink: 0; /* Prevent button from shrinking */
         }
 
         .chat-input button:hover {
-            background-color: #00e637;
-            transform: translateY(-2px);
-            box-shadow: 0 0 15px rgba(0, 255, 65, 0.6);
+            background-color: #3a7fda;
         }
 
         .chat-actions {
             display: flex;
             justify-content: space-around;
             padding: 10px 15px;
-            background-color: rgba(17, 25, 40, 0.9);
-            border-top: 1px solid #00ff41;
+            background-color: #1a252e; /* Action bar background */
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .chat-actions button {
-            background-color: #2b3a4a; /* Darker blue for actions */
-            color: #aaff00;
-            border: 1px solid #aaff00;
+            background-color: #333d45; /* Dark grey action button */
+            color: #e0e0e0;
+            border: none;
             padding: 8px 15px;
             border-radius: 8px;
             cursor: pointer;
-            font-family: 'Share Tech Mono', monospace;
+            font-family: 'Roboto', sans-serif;
             font-size: 0.9em;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            box-shadow: 0 0 10px rgba(170, 255, 0, 0.3);
+            transition: background-color 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            flex: 1 1 auto;
+            min-width: 120px;
+        }
+
+        .chat-actions button i {
+            margin-right: 5px;
         }
 
         .chat-actions button:hover {
-            background-color: #3b4c5d;
-            transform: translateY(-2px);
-            box-shadow: 0 0 15px rgba(170, 255, 0, 0.5);
+            background-color: #444d56;
         }
 
         .loading-dots span {
             animation: blink 1s infinite;
-            display: inline-block; /* Ensure dots stay on the same line */
+            display: inline-block;
+            color: #e0e0e0; /* Loading dots color */
         }
 
         .loading-dots span:nth-child(2) {
@@ -182,176 +258,73 @@
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .chat-container {
-                width: 95%;
-                max-height: 90vh;
+                width: 100%;
+                height: 100vh; /* Full height on mobile */
+                border-radius: 0;
             }
             .chat-header {
-                font-size: 1.2em;
-                padding: 12px;
+                font-size: 1.1em;
+                padding: 12px 15px;
             }
             .chat-box {
                 padding: 15px;
-                max-height: calc(90vh - 150px); /* Adjusted for smaller screens */
             }
             .chat-input {
-                padding: 12px;
+                padding: 8px 10px;
             }
             .chat-input input[type="text"] {
                 font-size: 0.9em;
+                padding: 8px 12px;
             }
             .chat-input button {
-                padding: 8px 15px;
-                font-size: 0.9em;
+                width: 40px;
+                height: 40px;
+                font-size: 1em;
             }
             .chat-actions {
-                flex-direction: column;
-                gap: 10px;
-                padding: 10px;
+                flex-direction: row; /* Keep row layout but allow wrapping */
+                gap: 8px;
+                padding: 8px 10px;
             }
             .chat-actions button {
-                width: 100%;
+                font-size: 0.8em;
+                padding: 6px 10px;
+                min-width: unset; /* Remove min-width */
+            }
+            .message {
+                max-width: calc(85% - 38px); /* Slightly more width on smaller screens */
+                font-size: 0.9em;
+                padding: 7px 10px;
             }
         }
     </style>
 </head>
 <body>
 
-    <div id="particles-js"></div>
-
     <div class="chat-container">
         <div class="chat-header">
-            ryyn Assistant AI
+            <i class="fas fa-comments"></i> ryyn AI Assistant
         </div>
         <div class="chat-box" id="chat-box">
-            <div class="message ai">Halo! Saya Digital ryyn AI. Ada yang bisa saya bantu?</div>
+            <div class="message-wrapper ai">
+                <div class="message-icon ai-icon"><i class="fas fa-robot"></i></div>
+                <div class="message ai-message">Halo,saya ryyn ai Ada yang bisa saya bantu?</div>
+            </div>
         </div>
         <div class="chat-input">
-            <input type="text" id="user-input" placeholder="Ketik pertanyaan Anda...">
-            <button id="send-button">Kirim</button>
+            <input type="text" id="user-input" placeholder="Ketik pesan Anda...">
+            <button id="send-button"><i class="fas fa-paper-plane"></i></button>
         </div>
         <div class="chat-actions">
-            <button id="clear-chat-button">Bersihkan Chat</button>
-            <button id="developer-info-button">Info Developer</button>
+            <button id="clear-chat-button"><i class="fas fa-trash-alt"></i> Bersihkan Chat</button>
+            <button id="developer-info-button"><i class="fas fa-info-circle"></i> Info Developer</button>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
-    <script>
-        // Initialize particles.js
-        particlesJS('particles-js', {
-            "particles": {
-                "number": {
-                    "value": 80,
-                    "density": {
-                        "enable": true,
-                        "value_area": 800
-                    }
-                },
-                "color": {
-                    "value": "#00ff41" // Green particles
-                },
-                "shape": {
-                    "type": "circle",
-                    "stroke": {
-                        "width": 0,
-                        "color": "#000000"
-                    },
-                    "polygon": {
-                        "nb_sides": 5
-                    },
-                    "image": {
-                        "src": "",
-                        "width": 100,
-                        "height": 100
-                    }
-                },
-                "opacity": {
-                    "value": 0.5,
-                    "random": false,
-                    "anim": {
-                        "enable": false,
-                        "speed": 1,
-                        "opacity_min": 0.1,
-                        "sync": false
-                    }
-                },
-                "size": {
-                    "value": 3,
-                    "random": true,
-                    "anim": {
-                        "enable": false,
-                        "speed": 40,
-                        "size_min": 0.1,
-                        "sync": false
-                    }
-                },
-                "line_linked": {
-                    "enable": true,
-                    "distance": 150,
-                    "color": "#00ff41",
-                    "opacity": 0.4,
-                    "width": 1
-                },
-                "move": {
-                    "enable": true,
-                    "speed": 3,
-                    "direction": "none",
-                    "random": false,
-                    "straight": false,
-                    "out_mode": "out",
-                    "bounce": false,
-                    "attract": {
-                        "enable": false,
-                        "rotateX": 600,
-                        "rotateY": 1200
-                    }
-                }
-            },
-            "interactivity": {
-                "detect_on": "canvas",
-                "events": {
-                    "onhover": {
-                        "enable": true,
-                        "mode": "grab"
-                    },
-                    "onclick": {
-                        "enable": true,
-                        "mode": "push"
-                    },
-                    "resize": true
-                },
-                "modes": {
-                    "grab": {
-                        "distance": 140,
-                        "line_linked": {
-                            "opacity": 1
-                        }
-                    },
-                    "bubble": {
-                        "distance": 400,
-                        "size": 40,
-                        "duration": 2,
-                        "opacity": 8,
-                        "speed": 3
-                    },
-                    "repulse": {
-                        "distance": 200,
-                        "duration": 0.4
-                    },
-                    "push": {
-                        "particles_nb": 4
-                    },
-                    "remove": {
-                        "particles_nb": 2
-                    }
-                }
-            },
-            "retina_detect": true
-        });
-    </script>
-
     <script>
         // --- Bagian JavaScript untuk Logika Chat AI ---
+        // PENTING: API KEY INI SANGAT TIDAK AMAN DI FRONTEND! HANYA UNTUK DEMO/PEMBELAJARAN.
+        // UNTUK PRODUKSI, GUNAKAN BACKEND SERVER UNTUK MENYIMPAN DAN MENGAKSES API KEY.
         const API_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyA9AtbP1D_m0WwpBw8OJfrCBOZWah7ApmI";
 
         const chatBox = document.getElementById('chat-box');
@@ -362,28 +335,61 @@
 
         // Fungsi untuk menambahkan pesan ke chat box
         function addMessage(sender, text) {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.classList.add('message-wrapper', sender);
+
+            const iconDiv = document.createElement('div');
+            iconDiv.classList.add('message-icon');
+            if (sender === 'user') {
+                iconDiv.classList.add('user-icon');
+                iconDiv.innerHTML = '<i class="fas fa-user"></i>';
+            } else {
+                iconDiv.classList.add('ai-icon');
+                iconDiv.innerHTML = '<i class="fas fa-robot"></i>';
+            }
+
             const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message', sender);
+            messageDiv.classList.add('message', `${sender}-message`);
             messageDiv.textContent = text;
-            chatBox.appendChild(messageDiv);
+
+            if (sender === 'user') {
+                messageWrapper.appendChild(messageDiv);
+                messageWrapper.appendChild(iconDiv);
+            } else {
+                messageWrapper.appendChild(iconDiv);
+                messageWrapper.appendChild(messageDiv);
+            }
+
+            chatBox.appendChild(messageWrapper);
             chatBox.scrollTop = chatBox.scrollHeight; // Scroll to bottom
         }
 
         // Fungsi untuk menampilkan indikator "mengetik" AI
         function showTypingIndicator() {
+            const typingWrapper = document.createElement('div');
+            typingWrapper.classList.add('message-wrapper', 'ai');
+            typingWrapper.id = 'typing-indicator-wrapper';
+
+            const iconDiv = document.createElement('div');
+            iconDiv.classList.add('message-icon', 'ai-icon');
+            iconDiv.innerHTML = '<i class="fas fa-robot"></i>';
+
             const typingDiv = document.createElement('div');
-            typingDiv.classList.add('message', 'ai', 'typing-indicator');
+            typingDiv.classList.add('message', 'ai-message', 'typing-indicator');
             typingDiv.innerHTML = '<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>';
             typingDiv.id = 'typing-indicator';
-            chatBox.appendChild(typingDiv);
+
+            typingWrapper.appendChild(iconDiv);
+            typingWrapper.appendChild(typingDiv);
+            chatBox.appendChild(typingWrapper);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
         // Fungsi untuk menyembunyikan indikator "mengetik" AI
         function hideTypingIndicator() {
-            const typingIndicator = document.getElementById('typing-indicator');
-            if (typingIndicator) {
-                typingIndicator.remove();
+            const typingIndicatorWrapper = document.getElementById('typing-indicator-wrapper');
+            if (typingIndicatorWrapper) {
+                typingIndicatorWrapper.remove();
             }
         }
 
@@ -405,17 +411,20 @@
                 if (!response.ok) {
                     const errorData = await response.json();
                     console.error("Gemini API Error:", errorData);
-                    // Check for specific error messages to provide better user feedback
-                    if (errorData.error && errorData.error.message.includes("API key not valid")) {
-                        return "Maaf, API Key tidak valid atau salah. Silakan periksa kembali.";
-                    } else if (errorData.error && errorData.error.message.includes("blocked due to safety")) {
-                        return "Maaf, respons AI diblokir karena masalah keamanan konten.";
+                    let errorMessage = "Mohon maaf, saya sedang mengalami masalah teknis saat menghubungi AI.";
+                    if (errorData.error && errorData.error.message) {
+                        if (errorData.error.message.includes("API key not valid")) {
+                            errorMessage = "Maaf, API Key tidak valid atau salah. Silakan periksa kembali.";
+                        } else if (errorData.error.message.includes("blocked due to safety")) {
+                            errorMessage = "Maaf, respons AI diblokir karena masalah keamanan konten. Mohon gunakan bahasa yang sesuai.";
+                        } else {
+                            errorMessage = `Terjadi kesalahan API: ${errorData.error.message}`;
+                        }
                     }
-                    throw new Error(`HTTP error! status: ${response.status} - ${errorData.error ? errorData.error.message : response.statusText}`);
+                    throw new Error(errorMessage);
                 }
 
                 const data = await response.json();
-                // Extracting text from the Gemini API response structure
                 if (data.candidates && data.candidates.length > 0 && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts.length > 0) {
                     return data.candidates[0].content.parts[0].text;
                 } else {
@@ -425,60 +434,61 @@
 
             } catch (error) {
                 console.error("Error communicating with AI:", error);
-                return "Mohon maaf, saya sedang mengalami masalah teknis saat menghubungi AI. Silakan coba lagi nanti.";
+                return error.message || "Mohon maaf, terjadi kesalahan yang tidak diketahui.";
             }
         }
 
         // Fungsi untuk mengirim pesan ke AI
-        async function sendMessageToAI(message) {
-            showTypingIndicator(); // Tampilkan indikator "mengetik"
-            userInput.disabled = true; // Nonaktifkan input saat AI berpikir
-            sendButton.disabled = true; // Nonaktifkan tombol kirim
-
-            let aiResponse = "Maaf, saya tidak mengerti pertanyaan Anda."; // Default fallback
-
-            // Memanggil Gemini API
-            aiResponse = await callGeminiAPI(message);
-
-            hideTypingIndicator(); // Sembunyikan indikator "mengetik"
-            addMessage('ai', aiResponse);
-            userInput.disabled = false; // Aktifkan kembali input
-            sendButton.disabled = false; // Aktifkan kembali tombol kirim
-            userInput.focus(); // Fokuskan kembali ke input
-        }
-
-        // Event listener untuk tombol Kirim
-        sendButton.addEventListener('click', () => {
+        async function sendMessage() {
             const message = userInput.value.trim();
             if (message) {
                 addMessage('user', message);
-                sendMessageToAI(message);
                 userInput.value = ''; // Clear input field
+
+                showTypingIndicator(); // Tampilkan indikator "mengetik"
+                userInput.disabled = true; // Nonaktifkan input saat AI berpikir
+                sendButton.disabled = true; // Nonaktifkan tombol kirim
+
+                const aiResponse = await callGeminiAPI(message);
+
+                hideTypingIndicator(); // Sembunyikan indikator "mengetik"
+                addMessage('ai', aiResponse);
+                userInput.disabled = false; // Aktifkan kembali input
+                sendButton.disabled = false; // Aktifkan kembali tombol kirim
+                userInput.focus(); // Fokuskan kembali ke input
             }
-        });
+        }
+
+        // Event listener untuk tombol Kirim
+        sendButton.addEventListener('click', sendMessage);
 
         // Event listener untuk tombol Enter di input
         userInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                sendButton.click();
+                sendMessage();
             }
         });
 
         // Event listener untuk tombol "Bersihkan Chat"
         clearChatButton.addEventListener('click', () => {
-            chatBox.innerHTML = '<div class="message ai">Halo! Saya Digital Horizon AI. Ada yang bisa saya bantu?</div>'; // Reset chat
+            chatBox.innerHTML = `
+                <div class="message-wrapper ai">
+                    <div class="message-icon ai-icon"><i class="fas fa-robot"></i></div>
+                    <div class="message ai-message">Halo,saya ryyn ai Ada yang bisa saya bantu?</div>
+                </div>
+            `; // Reset chat to initial greeting
         });
 
         // Event listener untuk tombol "Info Developer"
         developerInfoButton.addEventListener('click', () => {
-            alert('Aplikasi Chat AI ini dikembangkan oleh [ryyn digital]. Menggunakan teknologi Google.');
+            alert('Aplikasi Chat AI ini dikembangkan oleh [ ryyn ].\n\nMenggunakan teknologi Google untuk menjawab pertanyaan anda');
         });
 
-        // Inisialisasi pesan sambutan saat pertama kali dibuka
+        // Inisialisasi: fokuskan input saat halaman dimuat
         document.addEventListener('DOMContentLoaded', () => {
             userInput.focus();
         });
 
     </script>
 </body>
-</html>
+    </html>
